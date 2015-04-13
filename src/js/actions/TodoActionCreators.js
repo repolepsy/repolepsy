@@ -15,7 +15,17 @@ module.exports = {
   },
 
   completeTask: function(task) {
-    console.warn('completeTask action not yet implemented...');
+    AppDispatcher.handleViewAction({
+      type: Constants.ActionTypes.COMPLETE_TASK,
+      task: task
+    });
+  },
+
+  incompleteTask: function(task) {
+    AppDispatcher.handleViewAction({
+      type: Constants.ActionTypes.INCOMPLETE_TASK,
+      task: task
+    });
   }
 
 };
