@@ -1,28 +1,37 @@
 const React = require('react');
+const RepoStore = require('../stores/RepoStore');
 const TodoStore = require('../stores/TodoStore');
 const ActionCreator = require('../actions/TodoActionCreators');
 const Button = require('react-bootstrap/lib/Button');
 const Jumbotron = require('react-bootstrap/lib/Jumbotron');
 const TaskList = require('./TaskList.jsx');
+const RepoList = require('./RepoList.jsx');
 
 let App = React.createClass({
 
   getInitialState() {
-    return {
+    var data = {
+      repos: [],
       tasks: []
     }
+    return data;
   },
 
   _onChange() {
-    this.setState(TodoStore.getAll());
+    this.setState({
+      repos: RepoStore.getAll(),
+      tasks: TodoStore.getAll()
+    });
   },
 
   componentDidMount() {
     TodoStore.addChangeListener(this._onChange);
+    RepoStore.addChangeListener(this._onChange);
   },
 
   componentWillUnmount() {
     TodoStore.removeChangeListener(this._onChange);
+    RepoStore.removeChangeListener(this._onChange);
   },
 
   handleAddNewClick(e) {
@@ -37,7 +46,8 @@ let App = React.createClass({
   },
 
   render() {
-    let {tasks} = this.state;
+    let {tasks, repos} = this.state;
+
     return (
       <div className="container">
         <Jumbotron>
@@ -47,6 +57,8 @@ let App = React.createClass({
             Most features are left unimplemented with clues to guide you on the learning process.
           </p>
         </Jumbotron>
+
+        <RepoList repos={repos}/>
 
         <TaskList tasks={tasks} />
 

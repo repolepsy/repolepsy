@@ -15,6 +15,5 @@
     "tests"
   ],
   "dependencies": {
-    "octokat": "philschatz/octokat.js#~0.4.9"
   }
 }

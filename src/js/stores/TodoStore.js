@@ -35,9 +35,7 @@ let TodoStore = assign({}, BaseStore, {
 
   // public methods used by Controller-View to operate on data
   getAll() {
-      return {
-        tasks: _data
-      };
+      return _data;
     },
 
     // register store with dispatcher, allowing actions to flow through
