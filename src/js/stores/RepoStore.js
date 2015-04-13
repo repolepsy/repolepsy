@@ -6,6 +6,7 @@ const Octokat = require('octokat');
 
 // data storage
 let _repos = [];
+let _orgs = [];
 
 // auth user
 
@@ -17,6 +18,7 @@ var octo = new Octokat({
 //get user's repos
 
 var REPOS_PER_PAGE = 100; //can be safely changed to 100
+var ORGS_PER_PAGE = 100; //can be safely changed to 100
 
 var that = this;
 
@@ -29,9 +31,9 @@ function compare(a, b) {
 }
 
 function getAllRepos(res) {
-  console.warn("page", _repos.length);
+  // console.warn("page", _repos.length);
   res.forEach(function(repo) {
-    console.log("..", repo);
+    // console.log("..", repo);
   });
   _repos = _repos.concat(res);
 
@@ -47,10 +49,37 @@ function getAllRepos(res) {
   }
 }
 
-var fetch = octo.user.repos.fetch({
+function getAllOrgs(res) {
+  console.warn("page", _orgs.length);
+  res.forEach(function(org) {
+    console.log("..", org);
+    org.repos.fetch({
+      per_page: REPOS_PER_PAGE
+    }).then(getAllRepos);
+  });
+  _orgs = _orgs.concat(res);
+
+  if (res.nextPage) {
+    res.nextPage().then(getAllOrgs);
+  } else {
+    var dataJSON = JSON.stringify(_orgs);
+    console.warn("finished", dataJSON);
+    console.log("size", dataJSON.length / 1024, "KB");
+
+    _repos.sort(compare);
+    RepoStore.emitChange();
+  }
+}
+
+var userRepos = octo.user.repos.fetch({
   per_page: REPOS_PER_PAGE
 })
-fetch.then(getAllRepos);
+userRepos.then(getAllRepos);
+
+var userOrgs = octo.user.orgs.fetch({
+  per_page: ORGS_PER_PAGE
+});
+userOrgs.then(getAllOrgs);
 
 // Facebook style store creation.
 let RepoStore = assign({}, BaseStore, {
