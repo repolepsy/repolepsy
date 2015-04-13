@@ -1,11 +1,14 @@
 const React = require('react');
 const Panel = require('react-bootstrap/lib/Panel');
+const ListGroup = require('react-bootstrap/lib/ListGroup');
+const ListGroupItem = require('react-bootstrap/lib/ListGroupItem');
 
 let Repo = React.createClass({
   getInitialState() {
     return {
       repo: {
-        name: ''
+        name: '',
+        _events: []
       }
     };
   },
@@ -24,9 +27,17 @@ let Repo = React.createClass({
   },
 
   render() {
+    let {repo} = this.props;
+
     return (
       <Panel header={this.renderTitle()}>
-        Basic panel example
+        Aha 
+
+        <ListGroup fill>
+          {repo._events.map(evnt =>
+            <ListGroupItem href='#link1'>{evnt.type}</ListGroupItem>
+          )}
+        </ListGroup>
       </Panel>
     );
   }

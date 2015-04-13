@@ -19,6 +19,7 @@ var octo = new Octokat({
 
 var REPOS_PER_PAGE = 100; //can be safely changed to 100
 var ORGS_PER_PAGE = 100; //can be safely changed to 100
+var EVENTS_PER_PAGE = 5; //can be safely changed to 100
 
 var that = this;
 
@@ -34,6 +35,16 @@ function getAllRepos(res) {
   // console.warn("page", _repos.length);
   res.forEach(function(repo) {
     // console.log("..", repo);
+    repo._events = [];
+    repo.events.fetch({
+      per_page: EVENTS_PER_PAGE
+    }).then(function(events) {
+      repo._events = events;
+      console.info(events);
+      RepoStore.emitChange();
+    });
+
+
   });
   _repos = _repos.concat(res);
 
@@ -76,10 +87,12 @@ var userRepos = octo.user.repos.fetch({
 })
 userRepos.then(getAllRepos);
 
+/*
 var userOrgs = octo.user.orgs.fetch({
   per_page: ORGS_PER_PAGE
 });
 userOrgs.then(getAllOrgs);
+*/
 
 // Facebook style store creation.
 let RepoStore = assign({}, BaseStore, {
