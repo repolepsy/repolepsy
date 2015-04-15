@@ -1,7 +1,7 @@
 const React = require('react');
 const Panel = require('react-bootstrap/lib/Panel');
 const ListGroup = require('react-bootstrap/lib/ListGroup');
-const ListGroupItem = require('react-bootstrap/lib/ListGroupItem');
+const RepoEvent = require('./RepoEvent.jsx');
 
 let Repo = React.createClass({
   getInitialState() {
@@ -31,11 +31,11 @@ let Repo = React.createClass({
 
     return (
       <Panel header={this.renderTitle()}>
-        Aha 
+        Aha
 
         <ListGroup fill>
           {repo._events.map(evnt =>
-            <ListGroupItem href='#link1'>{evnt.type}</ListGroupItem>
+            <RepoEvent evnt={evnt} />
           )}
         </ListGroup>
       </Panel>

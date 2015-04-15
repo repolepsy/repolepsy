@@ -6,22 +6,30 @@ const Button = require('react-bootstrap/lib/Button');
 const Jumbotron = require('react-bootstrap/lib/Jumbotron');
 const TaskList = require('./TaskList.jsx');
 const RepoList = require('./RepoList.jsx');
+const RepoError = require('./RepoError.jsx');
 
 let App = React.createClass({
 
   getInitialState() {
     var data = {
-      repos: [],
+      RepoStore: {
+        token: "",
+        repos: [],
+        err: null
+      },
       tasks: []
-    }
+    };
     return data;
   },
 
   _onChange() {
     this.setState({
-      repos: RepoStore.getAll(),
+      RepoStore: RepoStore.getAll(),
       tasks: TodoStore.getAll()
     });
+
+    var dataJSON = JSON.stringify(this.state);
+    console.warn("total data size", dataJSON.length / 1024, "KB");
   },
 
   componentDidMount() {
@@ -46,24 +54,25 @@ let App = React.createClass({
   },
 
   render() {
-    let {tasks, repos} = this.state;
+    let {tasks, RepoStore} = this.state;
+
+    if(RepoStore.err) {
+      if(RepoStore.err.message = "Bad credentials") {
+        return (<RepoError repostore={RepoStore} />)
+      }
+      else {
+        alert("Unknown GH error occured");
+      }
+    }
 
     return (
       <div className="container">
         <Jumbotron>
-          <h1>Learning Flux</h1>
-          <p>
-            Below is a list of tasks you can implement to better grasp the patterns behind Flux.<br />
-            Most features are left unimplemented with clues to guide you on the learning process.
-          </p>
+          <h1>Repolepsy</h1>
+          <p>Displaying recent events in all your repos</p>
         </Jumbotron>
 
-        <RepoList repos={repos}/>
-
-        <TaskList tasks={tasks} />
-
-        <Button onClick={this.handleAddNewClick} bsStyle="primary">Add New</Button>
-        <Button onClick={this.handleClearListClick} bsStyle="danger">Clear List</Button>
+        <RepoList repos={RepoStore.repos}/>
       </div>
     );
   }

@@ -7,12 +7,12 @@ const Octokat = require('octokat');
 // data storage
 let _repos = [];
 let _orgs = [];
+let _err = null;
+let _token = window.localStorage.getItem("gh_token");
+let _lastToken = null;
 
 // auth user
-
-var octo = new Octokat({
-  token: "0f7669b10b651e486ed6a848e6741b9e8c1a37c7"
-});
+var octo;
 
 
 //get user's repos
@@ -32,38 +32,34 @@ function compare(a, b) {
 }
 
 function getAllRepos(res) {
-  // console.warn("page", _repos.length);
+  if(window.localStorage.getItem("gh_token") !== _token) {
+    window.localStorage.setItem("gh_token", _token);
+  }
+
+  _err = null;
+
   res.forEach(function(repo) {
-    // console.log("..", repo);
     repo._events = [];
     repo.events.fetch({
       per_page: EVENTS_PER_PAGE
     }).then(function(events) {
       repo._events = events;
-      console.info(events);
       RepoStore.emitChange();
     });
-
-
   });
+
   _repos = _repos.concat(res);
 
   if (res.nextPage) {
     res.nextPage().then(getAllRepos);
   } else {
-    var dataJSON = JSON.stringify(_repos);
-    console.warn("finished", dataJSON);
-    console.log("size", dataJSON.length / 1024, "KB");
-
     _repos.sort(compare);
     RepoStore.emitChange();
   }
 }
 
 function getAllOrgs(res) {
-  console.warn("page", _orgs.length);
   res.forEach(function(org) {
-    console.log("..", org);
     org.repos.fetch({
       per_page: REPOS_PER_PAGE
     }).then(getAllRepos);
@@ -73,34 +69,75 @@ function getAllOrgs(res) {
   if (res.nextPage) {
     res.nextPage().then(getAllOrgs);
   } else {
-    var dataJSON = JSON.stringify(_orgs);
-    console.warn("finished", dataJSON);
-    console.log("size", dataJSON.length / 1024, "KB");
+
 
     _repos.sort(compare);
     RepoStore.emitChange();
   }
 }
 
-var userRepos = octo.user.repos.fetch({
-  per_page: REPOS_PER_PAGE
-})
-userRepos.then(getAllRepos);
 
-/*
-var userOrgs = octo.user.orgs.fetch({
-  per_page: ORGS_PER_PAGE
-});
-userOrgs.then(getAllOrgs);
-*/
+function loadData() {
+  console.log("check", _lastToken, _token);
+
+
+  octo = new Octokat({
+    token: _token
+  });
+  _lastToken = _token;
+
+  octo.user.repos.fetch({
+    per_page: REPOS_PER_PAGE
+  })
+    .then(getAllRepos).catch(function(err){
+      _err = err;
+      RepoStore.emitChange();
+    });
+
+  /*
+   var userOrgs = octo.user.orgs.fetch({
+   per_page: ORGS_PER_PAGE
+   });
+   userOrgs.then(getAllOrgs);
+   */
+
+
+
+}
+loadData();
 
 // Facebook style store creation.
 let RepoStore = assign({}, BaseStore, {
 
   // public methods used by Controller-View to operate on data
   getAll() {
-    return _repos;
-  }
+    if(_lastToken !== _token) {
+      console.info("reloading data");
+      loadData();
+    }
+
+    return {
+      token: _token,
+      repos: _repos,
+      err: _err
+    };
+  },
+
+  // register store with dispatcher, allowing actions to flow through
+  dispatcherIndex: AppDispatcher.register(function(payload) {
+    let action = payload.action;
+
+    switch (action.type) {
+      case Constants.ActionTypes.SET_TOKEN:
+        let text = action.text.trim();
+        if (text !== '') {
+          _token = text;
+          console.log("_t", _token);
+          RepoStore.emitChange();
+        }
+        break;
+    }
+  })
 
 });
 
