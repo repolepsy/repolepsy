@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "flux": "^2.0.1",
+    "moment": "^2.10.2",
     "object-assign": "^2.0.0",
     "octokat": "^0.4.9",
     "react": "^0.13.1",

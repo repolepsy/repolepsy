@@ -24,6 +24,30 @@ let RepoEvent = React.createClass({
     return str;
   },
 
+  getCommentUrl() {
+    let {evnt} = this.props;
+    var str = evnt.payload.comment.url;
+    //https://api.github.com/repos/Starcounter-Jack/JSON-Patch/issues/comments/91527097
+    str = str.replace("https://api.github.com/repos", "https://github.com");
+    return str;
+  },
+
+  getPullRequestUrl() {
+    let {evnt} = this.props;
+    var str = evnt.payload.pullRequest.url;
+    //https://api.github.com/repos/Starcounter-Jack/JSON-Patch/pulls/70
+    str = str.replace("https://api.github.com/repos", "https://github.com");
+    return str;
+  },
+
+  getIssueUrl() {
+    let {evnt} = this.props;
+    var str = evnt.payload.issue.url;
+    //https://api.github.com/repos/PuppetJs/templatebinding.org/issues/2
+    str = str.replace("https://api.github.com/repos", "https://github.com");
+    return str;
+  },
+
   render() {
     let {evnt} = this.props;
 
@@ -34,7 +58,7 @@ let RepoEvent = React.createClass({
             <ListGroupItem>
               <a href={this.getActorUrl()}>{evnt.actor.login}</a>
               &nbsp;pushed&nbsp;
-              <a href={this.getCommitUrl()}>{evnt.payload.commits[0].message}</a>
+              <div><a href={this.getCommitUrl()}>{evnt.payload.commits[0].message}</a></div>
             </ListGroupItem>
           );
         }
@@ -46,14 +70,76 @@ let RepoEvent = React.createClass({
             </ListGroupItem>
           );
         }
+        break;
 
+      case "IssueCommentEvent":
+          return (
+            <ListGroupItem>
+              <a href={this.getActorUrl()}>{evnt.actor.login}</a>
+              &nbsp;{evnt.payload.action} comment&nbsp;
+              <div><a href={this.getCommentUrl()}>{evnt.payload.comment.body}</a></div>
+            </ListGroupItem>
+          );
+        break;
+
+      case "IssuesEvent":
+        return (
+          <ListGroupItem>
+            <a href={this.getActorUrl()}>{evnt.actor.login}</a>
+            &nbsp;{evnt.payload.action} issue&nbsp;
+            <div><a href={this.getIssueUrl()}>{evnt.payload.issue.title}</a></div>
+          </ListGroupItem>
+        );
+        break;
+
+      case "PullRequestEvent":
+        return (
+          <ListGroupItem>
+            <a href={this.getActorUrl()}>{evnt.actor.login}</a>
+            &nbsp;{evnt.payload.action} PR&nbsp;
+            <div><a href={this.getPullRequestUrl()}>{evnt.payload.pullRequest.title}</a></div>
+          </ListGroupItem>
+        );
+        break;
+
+      case "CreateEvent":
+        return (
+          <ListGroupItem>
+            <a href={this.getActorUrl()}>{evnt.actor.login}</a>
+            &nbsp;created {evnt.payload.refType} <strong>{evnt.payload.ref}</strong>
+          </ListGroupItem>
+        );
+        break;
+
+      case "DeleteEvent":
+        return (
+          <ListGroupItem>
+            <a href={this.getActorUrl()}>{evnt.actor.login}</a>
+            &nbsp;deleted {evnt.payload.refType} <strong>{evnt.payload.ref}</strong>
+          </ListGroupItem>
+        );
+        break;
+
+      case "ReleaseEvent":
+        return (
+          <ListGroupItem>
+            <a href={this.getActorUrl()}>{evnt.actor.login}</a>
+            &nbsp;{evnt.payload.action} release {evnt.payload.release.tagName}
+          </ListGroupItem>
+        );
+        break;
+
+      case "WatchEvent":
+      case "ForkEvent":
+        //ignore
+        return false;
         break;
 
       default:
         return (
           <ListGroupItem>
             <a href={this.getActorUrl()}>{evnt.actor.login}</a>
-            made &nbsp;{evnt.type}
+            &nbsp;made {evnt.type}
           </ListGroupItem>
         );
         break;

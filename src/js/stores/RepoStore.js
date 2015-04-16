@@ -3,6 +3,7 @@ const Constants = require('../constants/AppConstants');
 const BaseStore = require('./BaseStore');
 const assign = require('object-assign');
 const Octokat = require('octokat');
+const moment = require('moment');
 
 // data storage
 let _repos = [];
@@ -16,22 +17,18 @@ var octo;
 
 
 //get user's repos
-
 var REPOS_PER_PAGE = 100; //can be safely changed to 100
 var ORGS_PER_PAGE = 100; //can be safely changed to 100
 var EVENTS_PER_PAGE = 5; //can be safely changed to 100
 
-var that = this;
-
 function compare(a, b) {
-  if (a.updatedAt > b.updatedAt)
-    return -1;
-  if (a.updatedAt < b.updatedAt)
-    return 1;
-  return 0;
+  var diff = a._updatedAt.diff(b._updatedAt);
+  return -diff;
 }
 
 function getAllRepos(res) {
+  var now = moment();
+
   if(window.localStorage.getItem("gh_token") !== _token) {
     window.localStorage.setItem("gh_token", _token);
   }
@@ -39,6 +36,14 @@ function getAllRepos(res) {
   _err = null;
 
   res.forEach(function(repo) {
+    repo._updatedAt = moment(repo.updatedAt);
+
+    var days = now.diff(repo._updatedAt, 'days');
+    if(days > 7) {
+      repo._tooOld = true;
+      return;
+    }
+
     repo._events = [];
     repo.events.fetch({
       per_page: EVENTS_PER_PAGE
@@ -69,8 +74,6 @@ function getAllOrgs(res) {
   if (res.nextPage) {
     res.nextPage().then(getAllOrgs);
   } else {
-
-
     _repos.sort(compare);
     RepoStore.emitChange();
   }
@@ -78,9 +81,6 @@ function getAllOrgs(res) {
 
 
 function loadData() {
-  console.log("check", _lastToken, _token);
-
-
   octo = new Octokat({
     token: _token
   });
@@ -127,7 +127,6 @@ let RepoStore = assign({}, BaseStore, {
         let text = action.text.trim();
         if (text !== '') {
           _token = text;
-          console.log("_t", _token);
           RepoStore.emitChange();
         }
         break;

@@ -29,17 +29,26 @@ let Repo = React.createClass({
   render() {
     let {repo} = this.props;
 
-    return (
-      <Panel header={this.renderTitle()}>
-        Aha
+    if(repo._tooOld) {
+      return (
+        <Panel header={this.renderTitle()}>
+          Not active in last 7 days
+        </Panel>
+      );
+    }
+    else {
+      return (
+        <Panel header={this.renderTitle()}>
 
-        <ListGroup fill>
-          {repo._events.map(evnt =>
-            <RepoEvent evnt={evnt} />
-          )}
-        </ListGroup>
-      </Panel>
-    );
+
+          <ListGroup fill>
+            {repo._events.map(evnt =>
+                <RepoEvent evnt={evnt} />
+            )}
+          </ListGroup>
+        </Panel>
+      );
+    }
   }
 });
 
