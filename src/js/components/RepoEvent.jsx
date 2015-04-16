@@ -9,6 +9,11 @@ let RepoEvent = React.createClass({
   componentDidMount() {
   },
 
+  getBranchName(str) {
+    str = str.replace("refs/heads/", "");
+    return str;
+  },
+
   getActorUrl() {
     let {evnt} = this.props;
     var str = evnt.actor.url;
@@ -57,7 +62,7 @@ let RepoEvent = React.createClass({
           return (
             <ListGroupItem>
               <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
-              &nbsp;pushed&nbsp;
+              &nbsp;pushed to <strong>{this.getBranchName(evnt.payload.ref)}</strong>:&nbsp;
               <a href={this.getCommitUrl()}>{evnt.payload.commits[0].message}</a></div>
             </ListGroupItem>
           );
