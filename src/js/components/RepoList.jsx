@@ -1,9 +1,6 @@
 const React = require('react');
 const Repo = require('./Repo.jsx');
 const Alert = require('react-bootstrap/lib/Alert');
-const Grid = require('react-bootstrap/lib/Grid');
-const Row = require('react-bootstrap/lib/Row');
-const Col = require('react-bootstrap/lib/Col');
 
 let RepoList = React.createClass({
   getInitialState() {
@@ -25,15 +22,13 @@ let RepoList = React.createClass({
         </Alert>
       );
     }
-    
+
     return (
-      <Grid>
-      <Row className='show-grid'>
+      <div className='repo-grid'>
         {repos.map(repo =>
-          <Col md={3}><Repo repo={repo} /></Col>
+          <div className='repo-grid-item'><Repo repo={repo} /></div>
         )}
-      </Row>
-      </Grid>
+      </div>
     );
   }
 });

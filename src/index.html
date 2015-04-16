@@ -5,15 +5,30 @@
   <title>Repolepsy</title>
   <link rel="stylesheet" href="styles/main.css">
   <style>
-    .list-group-item {
-
-    }
     .list-group-item div {
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      display: block;
-      width: 100%;
+      position: relative;
+      height: 2.7em;
       overflow: hidden;
+    }
+    .list-group-item div:after {
+      content: "";
+      text-align: right;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 10%;
+      height: 1.35em;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1) 50%);
+    }
+    .repo-grid {
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: row;
+    }
+    .repo-grid-item {
+      flex: 0 0 calc(25% - 10px);
+      margin-left: 5px;
+      margin-right: 5px;
     }
   </style>
 </head>
