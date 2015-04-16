@@ -1,5 +1,5 @@
 
-# Repolepsy (repolepsy)
+# Repolepsy
 
 > Dashboard for working with GitHub projects
 
