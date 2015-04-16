@@ -94,15 +94,10 @@ function loadData() {
       RepoStore.emitChange();
     });
 
-  /*
-   var userOrgs = octo.user.orgs.fetch({
-   per_page: ORGS_PER_PAGE
-   });
-   userOrgs.then(getAllOrgs);
-   */
-
-
-
+  octo.user.orgs.fetch({
+    per_page: ORGS_PER_PAGE
+  })
+    .then(getAllOrgs);
 }
 loadData();
 

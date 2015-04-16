@@ -29,18 +29,32 @@ let RepoEvent = React.createClass({
 
     switch(evnt.type) {
       case "PushEvent":
-        return (
-          <ListGroupItem>
-            <a href={this.getActorUrl()}>{evnt.payload.commits[0].author.name}</a>
-            &nbsp;pushed&nbsp;
-            <a href={this.getCommitUrl()}>{evnt.payload.commits[0].message}</a>
-          </ListGroupItem>
-        );
+        if(evnt.payload.commits && evnt.payload.commits.length) {
+          return (
+            <ListGroupItem>
+              <a href={this.getActorUrl()}>{evnt.actor.login}</a>
+              &nbsp;pushed&nbsp;
+              <a href={this.getCommitUrl()}>{evnt.payload.commits[0].message}</a>
+            </ListGroupItem>
+          );
+        }
+        else {
+          return (
+            <ListGroupItem>
+              <a href={this.getActorUrl()}>{evnt.actor.login}</a>
+              &nbsp;pushed something
+            </ListGroupItem>
+          );
+        }
+
         break;
 
       default:
         return (
-          <ListGroupItem href='#link1'>{evnt.type}</ListGroupItem>
+          <ListGroupItem>
+            <a href={this.getActorUrl()}>{evnt.actor.login}</a>
+            made &nbsp;{evnt.type}
+          </ListGroupItem>
         );
         break;
     }
