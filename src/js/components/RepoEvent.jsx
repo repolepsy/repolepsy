@@ -155,12 +155,6 @@ let RepoEvent = React.createClass({
         );
         break;
 
-      case "WatchEvent":
-      case "ForkEvent":
-        //ignore
-        return false;
-        break;
-
       default:
         return (
           <ListGroupItem>

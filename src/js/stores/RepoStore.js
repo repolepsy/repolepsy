@@ -20,7 +20,8 @@ var octo;
 //get user's repos
 var REPOS_PER_PAGE = 100; //can be safely changed to 100
 var ORGS_PER_PAGE = 100; //can be safely changed to 100
-var EVENTS_PER_PAGE = 5; //can be safely changed to 100
+var EVENTS_PER_PAGE = 20;
+var MAX_EVENTS = 5; //max events to display
 
 function compare(a, b) {
   var adate = a._events.length ? a._events[0].createdAt : a.updatedAt;
@@ -81,7 +82,17 @@ function getAllRepos(res) {
     repo.events.fetch({
       per_page: EVENTS_PER_PAGE
     }).then(function(events) {
-      repo._events = events;
+
+      repo._events.length = 0;
+      events.forEach(function (evnt) {
+        if(repo._events.length == MAX_EVENTS) {
+          return;
+        }
+        if(evnt.type !== "ForkEvent" && evnt.type !== "WatchEvent") {
+          repo._events.push(evnt);
+        }
+      });
+
       completeAllData();
     });
   });
