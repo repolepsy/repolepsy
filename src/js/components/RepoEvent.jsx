@@ -1,10 +1,15 @@
 const React = require('react');
+const ReactEmoji = require('react-emoji');
 const ListGroupItem = require('react-bootstrap/lib/ListGroupItem');
 
 let RepoEvent = React.createClass({
   getInitialState() {
     return {};
   },
+
+  mixins: [
+    ReactEmoji
+  ],
 
   componentDidMount() {
   },
@@ -93,7 +98,7 @@ let RepoEvent = React.createClass({
             <ListGroupItem>
               <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
               &nbsp;{evnt.payload.action} comment&nbsp;
-              <a href={this.getCommentUrl()}>{evnt.payload.comment.body}</a></div>
+              <a href={this.getCommentUrl()}>{this.emojify(evnt.payload.comment.body, {"emojiType": "emojione"})}</a></div>
             </ListGroupItem>
           );
         break;
