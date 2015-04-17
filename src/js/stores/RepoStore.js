@@ -56,8 +56,18 @@ function getAllRepos(res) {
       }
     }
 
+    var days = now.diff(_updatedAt, 'days');
+    if(days > 7) {
+      repo._tooOld = true;
+      return;
+    }
+
+    if(!repo._events) {
+      repo._events = [];
+    }
+
     if(found) {
-      if(repo.updatedAt == found.updatedAt) {
+      if(repo.updatedAt == found.updatedAt && found._events && found._events.length > 0 /*&& found._events[0].createdAt === repo.updatedAt*/) {
         return;
       }
       else {
@@ -66,16 +76,6 @@ function getAllRepos(res) {
     }
     else {
       _repos.push(repo);
-    }
-
-    if(!repo._events) {
-      repo._events = [];
-    }
-
-    var days = now.diff(_updatedAt, 'days');
-    if(days > 7) {
-      repo._tooOld = true;
-      return;
     }
 
     repo.events.fetch({

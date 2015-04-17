@@ -12,11 +12,7 @@ let App = React.createClass({
 
   getInitialState() {
     var data = {
-      RepoStore: {
-        token: "",
-        repos: [],
-        err: null
-      },
+      RepoStore: RepoStore.getAll(),
       tasks: []
     };
     return data;
