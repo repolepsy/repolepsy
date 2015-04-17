@@ -26,7 +26,7 @@ let RepoList = React.createClass({
     return (
       <div className='repo-grid'>
         {repos.map(repo =>
-          <div className='repo-grid-item'><Repo repo={repo} /></div>
+          <div className='repo-grid-item' key={repo.id}><Repo repo={repo} /></div>
         )}
       </div>
     );
