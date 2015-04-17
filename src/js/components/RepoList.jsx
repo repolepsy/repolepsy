@@ -18,7 +18,7 @@ let RepoList = React.createClass({
     if (repos.length === 0) {
       return (
         <Alert bsStyle="warning">
-          <strong>You have no repos</strong>
+          <strong>Loading repos</strong>
         </Alert>
       );
     }
