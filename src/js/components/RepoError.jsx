@@ -42,10 +42,12 @@ let RepoError = React.createClass({
           animation={false}
           onRequestHide={this.handleHide}>
           <div className='modal-body'>
-            <div>
+            <p>
               To display your GitHub repositiories you need to generate a
               new <a href="https://github.com/settings/applications">Personal Access Token</a> and provide it below.
-            </div>
+            </p>
+
+            <p>Permissions needed: <strong>repo</strong>, <strong>user</strong></p>
 
             <Input
               type='text'
