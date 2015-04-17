@@ -54,6 +54,16 @@ let RepoEvent = React.createClass({
     return str;
   },
 
+  getWikiUrl() {
+    let {evnt} = this.props;
+    return this.getRepoUrl() + "/wiki/" + evnt.payload.pages[0].pageName;
+  },
+
+  getRepoUrl() {
+    let {repo} = this.props;
+    return "https://github.com/" + repo.fullName;
+  },
+
   render() {
     let {evnt} = this.props;
 
@@ -139,8 +149,8 @@ let RepoEvent = React.createClass({
         return (
           <ListGroupItem>
             <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
-            &nbsp;{evnt.payload.pages[0].action} wiki page&nbsp;
-            <strong>{evnt.payload.pages[0].title}</strong></div>
+            &nbsp;{evnt.payload.pages[0].action} wiki&nbsp;
+              <a href={this.getWikiUrl()}>{evnt.payload.pages[0].title}</a></div>
           </ListGroupItem>
         );
         break;

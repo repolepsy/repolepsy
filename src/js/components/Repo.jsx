@@ -43,7 +43,7 @@ let Repo = React.createClass({
 
           <ListGroup fill>
             {repo._events.map(evnt =>
-                <RepoEvent evnt={evnt} key={evnt.id} />
+                <RepoEvent repo={repo} evnt={evnt} key={evnt.id} />
             )}
           </ListGroup>
         </Panel>
