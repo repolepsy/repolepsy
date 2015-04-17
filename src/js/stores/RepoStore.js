@@ -5,23 +5,24 @@ const assign = require('object-assign');
 const Octokat = require('octokat');
 const moment = require('moment');
 
-// data storage
+// private data
 let _storedRepos = window.localStorage.getItem("repos");
 let _repos = _storedRepos ? JSON.parse(_storedRepos) : [];
 let _orgs = [];
 let _err = null;
-let _token = window.localStorage.getItem("gh_token");
+let _token = window.localStorage.getItem("gh_token") || "";
 let _lastToken = null;
+let refreshTimeout;
 
 // auth user
 var octo;
 
-
-//get user's repos
-var REPOS_PER_PAGE = 100; //can be safely changed to 100
-var ORGS_PER_PAGE = 100; //can be safely changed to 100
-var EVENTS_PER_PAGE = 20;
-var MAX_EVENTS = 5; //max events to display
+//settings
+const REPOS_PER_PAGE = 100; //can be safely changed to 100
+const ORGS_PER_PAGE = 100; //can be safely changed to 100
+const EVENTS_PER_PAGE = 20;
+const MAX_EVENTS = 5; //max events to display
+const REFRESH_INTERVAL_MS = 5 * 60 * 1000; //5 minutes
 
 function compare(a, b) {
   var adate = a._events.length ? a._events[0].createdAt : a.updatedAt;
@@ -138,10 +139,12 @@ function completeAllData() {
 }
 
 function loadData() {
-  octo = new Octokat({
-    token: _token
-  });
-  _lastToken = _token;
+  if(_lastToken != _token) {
+    octo = new Octokat({
+      token: _token
+    });
+    _lastToken = _token;
+  }
 
   octo.user.repos.fetch({
     per_page: REPOS_PER_PAGE
@@ -155,6 +158,9 @@ function loadData() {
     per_page: ORGS_PER_PAGE
   })
     .then(getAllOrgs);
+
+  clearTimeout(refreshTimeout);
+  refreshTimeout = setTimeout(loadData, REFRESH_INTERVAL_MS);
 }
 loadData();
 

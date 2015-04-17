@@ -62,7 +62,7 @@ let App = React.createClass({
       <div className="container">
         <Jumbotron>
           <h1>Repolepsy</h1>
-          <p>Displaying recent events in all your repos</p>
+          <p>Recent changes in all your repos, refreshed every 5 minutes (or when you press F5)</p>
         </Jumbotron>
 
         <RepoList repos={RepoStore.repos}/>
