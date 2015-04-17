@@ -34,6 +34,7 @@ let RepoEvent = React.createClass({
     var str = evnt.payload.comment.url;
     //https://api.github.com/repos/Starcounter-Jack/JSON-Patch/issues/comments/91527097
     str = str.replace("https://api.github.com/repos", "https://github.com");
+    str = str.replace("comments/", evnt.payload.issue.number + "#issuecomment-");
     return str;
   },
 
@@ -130,6 +131,16 @@ let RepoEvent = React.createClass({
           <ListGroupItem>
             <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
             &nbsp;{evnt.payload.action} release {evnt.payload.release.tagName}</div>
+          </ListGroupItem>
+        );
+        break;
+
+      case "GollumEvent":
+        return (
+          <ListGroupItem>
+            <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
+            &nbsp;{evnt.payload.pages[0].action} wiki page&nbsp;
+            <strong>{evnt.payload.pages[0].title}</strong></div>
           </ListGroupItem>
         );
         break;

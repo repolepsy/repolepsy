@@ -32,7 +32,7 @@ let Repo = React.createClass({
     if(repo._tooOld) {
       return (
         <Panel header={this.renderTitle()}>
-          Not active in last 7 days
+          No recent activity
         </Panel>
       );
     }

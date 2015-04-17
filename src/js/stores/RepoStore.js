@@ -6,7 +6,8 @@ const Octokat = require('octokat');
 const moment = require('moment');
 
 // data storage
-let _repos = [];
+let _storedRepos = window.localStorage.getItem("repos");
+let _repos = _storedRepos ? JSON.parse(_storedRepos) : [];
 let _orgs = [];
 let _err = null;
 let _token = window.localStorage.getItem("gh_token");
@@ -22,8 +23,13 @@ var ORGS_PER_PAGE = 100; //can be safely changed to 100
 var EVENTS_PER_PAGE = 5; //can be safely changed to 100
 
 function compare(a, b) {
-  var diff = a._updatedAt.diff(b._updatedAt);
-  return -diff;
+  if(a.updatedAt > b.updatedAt) {
+    return -1;
+  }
+  else if (a.updatedAt < b.updatedAt) {
+    return 1;
+  }
+  return 0;
 }
 
 function getAllRepos(res) {
@@ -36,30 +42,53 @@ function getAllRepos(res) {
   _err = null;
 
   res.forEach(function(repo) {
-    repo._updatedAt = moment(repo.updatedAt);
+    repo.updatedAt = repo.updatedAt.toISOString();
+    var _updatedAt = moment(repo.updatedAt);
 
-    var days = now.diff(repo._updatedAt, 'days');
+    var found;
+    for(var i=0; i<_repos.length; i++) {
+      if(_repos[i].id === repo.id) {
+        found = _repos[i];
+        break;
+      }
+    }
+
+    if(found) {
+      if(repo.updatedAt == found.updatedAt) {
+        return;
+      }
+      else {
+        _repos[i] = repo;
+      }
+    }
+    else {
+      _repos.push(repo);
+    }
+
+
+
+    var days = now.diff(_updatedAt, 'days');
     if(days > 7) {
       repo._tooOld = true;
       return;
     }
 
-    repo._events = [];
+    if(!repo._events) {
+      repo._events = [];
+    }
     repo.events.fetch({
       per_page: EVENTS_PER_PAGE
     }).then(function(events) {
+      console.log("got events");
       repo._events = events;
-      RepoStore.emitChange();
+      completeAllData();
     });
   });
-
-  _repos = _repos.concat(res);
 
   if (res.nextPage) {
     res.nextPage().then(getAllRepos);
   } else {
-    _repos.sort(compare);
-    RepoStore.emitChange();
+    completeAllRepos();
   }
 }
 
@@ -74,9 +103,18 @@ function getAllOrgs(res) {
   if (res.nextPage) {
     res.nextPage().then(getAllOrgs);
   } else {
-    _repos.sort(compare);
-    RepoStore.emitChange();
+    completeAllRepos();
   }
+}
+
+function completeAllRepos() {
+  _repos.sort(compare);
+  completeAllData();
+}
+
+function completeAllData() {
+  window.localStorage.setItem("repos", JSON.stringify(_repos));
+  RepoStore.emitChange();
 }
 
 
