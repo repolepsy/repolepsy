@@ -27,9 +27,6 @@ let App = React.createClass({
       RepoStore: RepoStore.getAll(),
       tasks: TodoStore.getAll()
     });
-
-    var dataJSON = JSON.stringify(this.state);
-    console.warn("total data size", dataJSON.length / 1024, "KB");
   },
 
   componentDidMount() {

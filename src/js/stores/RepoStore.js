@@ -23,10 +23,13 @@ var ORGS_PER_PAGE = 100; //can be safely changed to 100
 var EVENTS_PER_PAGE = 5; //can be safely changed to 100
 
 function compare(a, b) {
-  if(a.updatedAt > b.updatedAt) {
+  var adate = a._events.length ? a._events[0].createdAt : a.updatedAt;
+  var bdate = b._events.length ? b._events[0].createdAt : b.updatedAt;
+
+  if(adate > bdate) {
     return -1;
   }
-  else if (a.updatedAt < b.updatedAt) {
+  else if (adate < bdate) {
     return 1;
   }
   return 0;
@@ -65,7 +68,9 @@ function getAllRepos(res) {
       _repos.push(repo);
     }
 
-
+    if(!repo._events) {
+      repo._events = [];
+    }
 
     var days = now.diff(_updatedAt, 'days');
     if(days > 7) {
@@ -73,13 +78,9 @@ function getAllRepos(res) {
       return;
     }
 
-    if(!repo._events) {
-      repo._events = [];
-    }
     repo.events.fetch({
       per_page: EVENTS_PER_PAGE
     }).then(function(events) {
-      console.log("got events");
       repo._events = events;
       completeAllData();
     });
@@ -112,11 +113,18 @@ function completeAllRepos() {
   completeAllData();
 }
 
+var lastSize = 0;
 function completeAllData() {
-  window.localStorage.setItem("repos", JSON.stringify(_repos));
+  var str = JSON.stringify(_repos)
+  window.localStorage.setItem("repos", str);
   RepoStore.emitChange();
-}
 
+  var size = parseInt(str.length / 1024, 10);
+  if(size != lastSize) {
+    console.warn("total data size", size, "KB");
+    lastSize = size;
+  }
+}
 
 function loadData() {
   octo = new Octokat({
