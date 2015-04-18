@@ -4,6 +4,7 @@ const BaseStore = require('./BaseStore');
 const assign = require('object-assign');
 const Octokat = require('octokat');
 const moment = require('moment');
+const debounce = require('debounce');
 
 // private data
 let _storedRepos = window.localStorage.getItem("repos");
@@ -13,6 +14,7 @@ let _err = null;
 let _token = window.localStorage.getItem("gh_token") || "";
 let _lastToken = null;
 let refreshTimeout;
+let _now;
 
 // auth user
 var octo;
@@ -24,84 +26,43 @@ const EVENTS_PER_PAGE = 20;
 const MAX_EVENTS = 5; //max events to display
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; //5 minutes
 
-function compare(a, b) {
-  var adate = a._events.length ? a._events[0].createdAt : a.updatedAt;
-  var bdate = b._events.length ? b._events[0].createdAt : b.updatedAt;
 
-  if(adate > bdate) {
-    return -1;
+function assureString(str) {
+  if(typeof str !== 'string') {
+    throw new Error("Expected a string");
   }
-  else if (adate < bdate) {
-    return 1;
+}
+
+
+
+//Phase 1 - refresh repos information
+function findRepo(id) {
+  for(var i=0; i<_repos.length; i++) {
+    if(_repos[i].id === id) {
+      return _repos[i];
+    }
   }
-  return 0;
 }
 
 function getAllRepos(res) {
-  var now = moment();
-
-  if(window.localStorage.getItem("gh_token") !== _token) {
-    window.localStorage.setItem("gh_token", _token);
-  }
 
   _err = null;
 
   res.forEach(function(repo) {
-    repo.updatedAt = repo.updatedAt.toISOString();
-    var _updatedAt = moment(repo.updatedAt);
+    var found = findRepo(repo.id);
 
-    var found;
-    for(var i=0; i<_repos.length; i++) {
-      if(_repos[i].id === repo.id) {
-        found = _repos[i];
-        break;
-      }
-    }
-
-    var days = now.diff(_updatedAt, 'days');
-    if(days > 7) {
-      repo._tooOld = true;
-      return;
-    }
-
-    if(!repo._events) {
+    if(!found) {
       repo._events = [];
-    }
-
-    if(found) {
-      if(repo.updatedAt == found.updatedAt && found._events && found._events.length > 0 /*&& found._events[0].createdAt === repo.updatedAt*/) {
-        return;
-      }
-      else {
-        _repos[i] = repo;
-      }
-    }
-    else {
       _repos.push(repo);
     }
 
-    repo.events.fetch({
-      per_page: EVENTS_PER_PAGE
-    }).then(function(events) {
-
-      repo._events.length = 0;
-      events.forEach(function (evnt) {
-        if(repo._events.length == MAX_EVENTS) {
-          return;
-        }
-        if(evnt.type !== "ForkEvent" && evnt.type !== "WatchEvent") {
-          repo._events.push(evnt);
-        }
-      });
-
-      completeAllData();
-    });
+    repo.updatedAt = repo.updatedAt.toISOString();
   });
 
   if (res.nextPage) {
     res.nextPage().then(getAllRepos);
   } else {
-    completeAllRepos();
+    updateAllRepoEvents();
   }
 }
 
@@ -116,16 +77,88 @@ function getAllOrgs(res) {
   if (res.nextPage) {
     res.nextPage().then(getAllOrgs);
   } else {
-    completeAllRepos();
+    updateAllRepoEvents();
   }
 }
 
-function completeAllRepos() {
+
+
+//Phase 2 - refresh repo events
+function updateAllRepoEvents() {
+  _repos.forEach(function(repo) {
+    assureString(repo.updatedAt);
+
+    if(repo._events.length > 0) {
+      assureString(repo._events[0].createdAt);
+      if(repo.updatedAt >= repo._events[0].createdAt) {
+        return; //no need to refresh
+      }
+    }
+
+    var _updatedAt = moment(repo.updatedAt);
+
+    var days = _now.diff(_updatedAt, 'days');
+    if(days > 7) {
+      repo._tooOld = true;
+      return;
+    }
+    repo._tooOld = false;
+
+    octo.repos(repo.fullName).events.fetch({
+      per_page: EVENTS_PER_PAGE
+    }).then(function(events) {
+      repo._events.length = 0;
+
+      events.forEach(function (evnt) {
+        evnt.createdAt = evnt.createdAt.toISOString();
+        if(repo._events.length == MAX_EVENTS) {
+          return;
+        }
+        if(evnt.type !== "ForkEvent" && evnt.type !== "WatchEvent") {
+          repo._events.push(evnt);
+        }
+      });
+
+      if(events.length > 0) {
+        assureString(events[0].createdAt);
+        repo.updatedAt = events[0].createdAt;
+      }
+
+      completeAllData();
+    });
+  });
+
   completeAllData();
 }
 
+//Phase 3 - sort data and render
+
+
+
+
+
+function compare(a, b) {
+  var adate = a.updatedAt;
+  var bdate = b.updatedAt;
+
+  if(adate > bdate) {
+    return -1;
+  }
+  else if (adate < bdate) {
+    return 1;
+  }
+  return 0;
+}
+
+
+
+
+
 var lastSize = 0;
-function completeAllData() {
+var completeAllData = debounce(refreshUI, 1000, true);
+
+function refreshUI() {
+  console.log("refreshUI");
   _repos.sort(compare);
   var str = JSON.stringify(_repos);
   window.localStorage.setItem("repos", str);
@@ -139,6 +172,8 @@ function completeAllData() {
 }
 
 function loadData() {
+  _now = moment();
+
   if(_lastToken != _token) {
     octo = new Octokat({
       token: _token
@@ -190,6 +225,9 @@ let RepoStore = assign({}, BaseStore, {
         let text = action.text.trim();
         if (text !== '') {
           _token = text;
+          if(window.localStorage.getItem("gh_token") !== _token) {
+            window.localStorage.setItem("gh_token", _token);
+          }
           RepoStore.emitChange();
         }
         break;
