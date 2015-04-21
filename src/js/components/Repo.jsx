@@ -16,6 +16,17 @@ let Repo = React.createClass({
     };
   },
 
+  shouldComponentUpdate: function(nextProps, nextState) {
+    if(nextProps.repo && nextProps.repo._events && nextProps.repo._events[0] && nextProps.repo._events[0].createdAt) {
+      if(this.props.repo && this.props.repo._events && this.props.repo._events[0] && this.props.repo._events[0].createdAt) {
+        if(nextProps.repo._events[0].createdAt == this.props.repo._events[0].createdAt) {
+          return false;
+        }
+      }
+    }
+    return true;
+  },
+
   componentDidMount() {
   },
 

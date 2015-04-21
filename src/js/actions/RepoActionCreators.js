@@ -10,6 +10,12 @@ module.exports = {
     });
   },
 
+  refreshRepos: function() {
+    AppDispatcher.handleViewAction({
+      type: Constants.ActionTypes.REFRESH_REPOS
+    });
+  },
+
   ignoreRepo: function(repo) {
     console.log("ignoreRepo", repo);
     AppDispatcher.handleViewAction({

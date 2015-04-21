@@ -160,6 +160,7 @@ function refreshUI() {
 }
 
 function loadData() {
+  console.info("Loading data");
   _now = moment();
 
   if(_lastToken != _token) {
@@ -194,7 +195,6 @@ let RepoStore = assign({}, BaseStore, {
   // public methods used by Controller-View to operate on data
   getAll() {
     if(_lastToken !== _token) {
-      console.info("reloading data");
       loadData();
     }
 
@@ -220,6 +220,10 @@ let RepoStore = assign({}, BaseStore, {
           }
           RepoStore.emitChange();
         }
+        break;
+
+      case Constants.ActionTypes.REFRESH_REPOS:
+        loadData();
         break;
     }
   })
