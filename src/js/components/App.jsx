@@ -34,6 +34,7 @@ let App = React.createClass({
   handleRefreshClick(e) {
     ActionCreator.refreshRepos();
     e.preventDefault();
+    e.target.blur();
   },
 
   handleRefreshOver(e) {
