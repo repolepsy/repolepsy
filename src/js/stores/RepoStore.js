@@ -64,6 +64,10 @@ function getAllRepos(res) {
     }
 
     found.updatedAt = repo.updatedAt.toISOString();
+    found.pushedAt = repo.pushedAt.toISOString();
+    if(found.pushedAt > found.updatedAt) {
+      found.updatedAt = found.pushedAt;
+    }
 
     updateRepoEvents(found);
   });
