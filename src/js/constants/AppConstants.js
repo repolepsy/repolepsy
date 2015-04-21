@@ -6,7 +6,9 @@ module.exports = {
     ADD_TASK: null,
     COMPLETE_TASK: null,
     INCOMPLETE_TASK: null,
-    SET_TOKEN: null
+    SET_TOKEN: null,
+    IGNORE_REPO: null,
+    IGNORE_ORG: null
   }),
 
   ActionSources: keyMirror({

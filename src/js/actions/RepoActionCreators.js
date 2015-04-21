@@ -8,6 +8,21 @@ module.exports = {
       type: Constants.ActionTypes.SET_TOKEN,
       text: text
     });
+  },
+
+  ignoreRepo: function(repo) {
+    console.log("ignoreRepo", repo);
+    AppDispatcher.handleViewAction({
+      type: Constants.ActionTypes.IGNORE_REPO,
+      repo: repo
+    });
+  },
+
+  ignoreOrg: function(repo) {
+    AppDispatcher.handleViewAction({
+      type: Constants.ActionTypes.IGNORE_ORG,
+      repo: repo
+    });
   }
 
 };

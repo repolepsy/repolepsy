@@ -6,12 +6,22 @@ const Octokat = require('octokat');
 const moment = require('moment');
 const debounce = require('debounce');
 
+
+
+Object.values = obj => Object.keys(obj).map(key => obj[key]);
+
 // private data
-let _storedRepos = window.localStorage.getItem("repos");
-let _repos = _storedRepos ? JSON.parse(_storedRepos) : [];
+let _storedRepos = window.localStorage.getItem("repos3");
+let _repos = _storedRepos ? JSON.parse(_storedRepos) : {};
+
+Object.values(_repos).forEach(function(repo) {
+  repo._loading = false;
+});
+
 let _orgs = [];
 let _err = null;
 let _token = window.localStorage.getItem("gh_token") || "";
+let _ignoredRepos = window.localStorage.getItem("ignoredRepos") || [];
 let _lastToken = null;
 let refreshTimeout;
 let _now;
@@ -36,27 +46,26 @@ function assureString(str) {
 
 
 //Phase 1 - refresh repos information
-function findRepo(id) {
-  for(var i=0; i<_repos.length; i++) {
-    if(_repos[i].id === id) {
-      return _repos[i];
-    }
-  }
-}
-
 function getAllRepos(res) {
 
   _err = null;
 
   res.forEach(function(repo) {
-    var found = findRepo(repo.id);
+    var found = _repos[repo.fullName];
 
-    if(!found) {
-      repo._events = [];
-      _repos.push(repo);
+    if(repo.name == "Barcodes") {
+     // debugger;
     }
 
-    repo.updatedAt = repo.updatedAt.toISOString();
+    if(!found) {
+      found = repo;
+      found._events = [];
+      _repos[found.fullName] = found;
+    }
+
+    found.updatedAt = repo.updatedAt.toISOString();
+
+    updateRepoEvents(found);
   });
 
   if (res.nextPage) {
@@ -85,83 +94,62 @@ function getAllOrgs(res) {
 
 //Phase 2 - refresh repo events
 function updateAllRepoEvents() {
-  _repos.forEach(function(repo) {
-    assureString(repo.updatedAt);
-
-    if(repo._events.length > 0) {
-      assureString(repo._events[0].createdAt);
-      if(repo.updatedAt >= repo._events[0].createdAt) {
-        return; //no need to refresh
-      }
-    }
-
-    var _updatedAt = moment(repo.updatedAt);
-
-    var days = _now.diff(_updatedAt, 'days');
-    if(days > 7) {
-      repo._tooOld = true;
-      return;
-    }
-    repo._tooOld = false;
-
-    octo.repos(repo.fullName).events.fetch({
-      per_page: EVENTS_PER_PAGE
-    }).then(function(events) {
-      repo._events.length = 0;
-
-      events.forEach(function (evnt) {
-        evnt.createdAt = evnt.createdAt.toISOString();
-        if(repo._events.length == MAX_EVENTS) {
-          return;
-        }
-        if(evnt.type !== "ForkEvent" && evnt.type !== "WatchEvent") {
-          repo._events.push(evnt);
-        }
-      });
-
-      if(events.length > 0) {
-        assureString(events[0].createdAt);
-        repo.updatedAt = events[0].createdAt;
-      }
-
-      completeAllData();
-    });
-  });
-
   completeAllData();
 }
 
-//Phase 3 - sort data and render
+function updateRepoEvents(repo) {
+  assureString(repo.updatedAt);
 
-
-
-
-
-function compare(a, b) {
-  var adate = a.updatedAt;
-  var bdate = b.updatedAt;
-
-  if(adate > bdate) {
-    return -1;
+  if(repo.lastUpdatedAt) {
+    assureString(repo.lastUpdatedAt);
+    if(repo.lastUpdatedAt >= repo.updatedAt) {
+      return; //no need to refresh
+    }
   }
-  else if (adate < bdate) {
-    return 1;
+
+  var _updatedAt = moment(repo.updatedAt);
+  repo._style = {
+    order: 1735689600 - _updatedAt.unix()
+  };
+
+  var days = _now.diff(_updatedAt, 'days');
+  if(days > 7) {
+    repo._tooOld = true;
+    return;
   }
-  return 0;
+  repo._tooOld = false;
+  repo._loading = true;
+
+  octo.repos(repo.fullName).events.fetch({
+    per_page: EVENTS_PER_PAGE
+  }).then(function(events) {
+    repo._events.length = 0;
+
+    events.forEach(function (evnt) {
+      evnt.createdAt = evnt.createdAt.toISOString();
+      if(repo._events.length == MAX_EVENTS) {
+        return;
+      }
+      if(evnt.type !== "ForkEvent" && evnt.type !== "WatchEvent") {
+        repo._events.push(evnt);
+      }
+    });
+
+    repo.lastUpdatedAt = repo.updatedAt;
+    repo._loading = false;
+
+    completeAllData();
+  });
 }
 
-
-
-
-
+//Phase 3 - sort data and render
 var lastSize = 0;
-var completeAllData = debounce(refreshUI, 1000, true);
+var completeAllData = debounce(refreshUI, 1000);
 
 function refreshUI() {
   console.log("refreshUI");
-  _repos.sort(compare);
   var str = JSON.stringify(_repos);
-  window.localStorage.setItem("repos", str);
+  window.localStorage.setItem("repos3", str);
   RepoStore.emitChange();
 
   var size = parseInt(str.length / 1024, 10);
@@ -202,6 +190,7 @@ loadData();
 // Facebook style store creation.
 let RepoStore = assign({}, BaseStore, {
 
+
   // public methods used by Controller-View to operate on data
   getAll() {
     if(_lastToken !== _token) {
@@ -211,7 +200,8 @@ let RepoStore = assign({}, BaseStore, {
 
     return {
       token: _token,
-      repos: _repos,
+      repos: Object.values(_repos),
+      orgs: Object.values(_orgs),
       err: _err
     };
   },

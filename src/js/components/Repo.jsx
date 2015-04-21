@@ -1,7 +1,10 @@
 const React = require('react');
 const Panel = require('react-bootstrap/lib/Panel');
 const ListGroup = require('react-bootstrap/lib/ListGroup');
+const DropdownButton = require('react-bootstrap/lib/DropdownButton');
+const MenuItem = require('react-bootstrap/lib/MenuItem');
 const RepoEvent = require('./RepoEvent.jsx');
+const ActionCreator = require('../actions/RepoActionCreators');
 
 let Repo = React.createClass({
   getInitialState() {
@@ -23,24 +26,49 @@ let Repo = React.createClass({
 
   renderTitle() {
     let {repo} = this.props;
-    return <h3><a href={this.url()}>{repo.name}</a></h3>
+
+    var title = repo.name;
+    if(repo._loading) {
+      title += " (Loading...)";
+    }
+
+    /*return (<h3><a href={this.url()}>{title}</a>
+
+      <DropdownButton title='' bsSize='xsmall' pullRight>
+        <MenuItem onClick={this.ignoreRepo} eventKey='1'>Ignore {repo.fullName}</MenuItem>
+        <MenuItem onClick={this.ignoreOrg} eventKey='2'>Ignore organization</MenuItem>
+      </DropdownButton>
+
+    </h3>)*/
+
+    return <h3><a href={this.url()}>{title}</a></h3>;
+  },
+
+  ignoreRepo() {
+    ActionCreator.ignoreRepo(this.props.repo);
+    return false;
+  },
+
+  ignoreOrg() {
+    ActionCreator.ignoreOrg(this.props.repo);
+    return false;
   },
 
   render() {
     let {repo} = this.props;
+    let title = this.renderTitle();
 
     if(repo._tooOld) {
       return (
-        <Panel header={this.renderTitle()}>
-          No recent activity
+        <Panel header={title}>
+          <ListGroup fill>
+          </ListGroup>
         </Panel>
       );
     }
     else {
       return (
-        <Panel header={this.renderTitle()}>
-
-
+        <Panel header={title}>
           <ListGroup fill>
             {repo._events.map(evnt =>
                 <RepoEvent repo={repo} evnt={evnt} key={evnt.id} />

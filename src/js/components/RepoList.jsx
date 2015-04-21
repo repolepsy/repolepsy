@@ -2,6 +2,13 @@ const React = require('react');
 const Repo = require('./Repo.jsx');
 const Alert = require('react-bootstrap/lib/Alert');
 
+function currentRepos(repo) {
+  return !(repo._tooOld || repo._ignoredRepo);
+}
+function outdatedRepos(repo) {
+  return repo._tooOld;
+}
+
 let RepoList = React.createClass({
   getInitialState() {
     return {
@@ -24,10 +31,20 @@ let RepoList = React.createClass({
     }
 
     return (
-      <div className='repo-grid'>
-        {repos.map(repo =>
-          <div className='repo-grid-item' key={repo.id}><Repo repo={repo} /></div>
-        )}
+      <div>
+        <div className='repo-grid'>
+          {repos.filter(currentRepos).map(repo =>
+              <div className='repo-grid-item' key={repo.id} style={repo._style}><Repo repo={repo} /></div>
+          )}
+        </div>
+
+        <h3 className='subsection'>Outdated repos</h3>
+
+        <div className='repo-grid'>
+          {repos.filter(outdatedRepos).map(repo =>
+              <div className='repo-grid-item' key={repo.id} style={repo._style}><Repo repo={repo} /></div>
+          )}
+        </div>
       </div>
     );
   }
