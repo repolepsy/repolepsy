@@ -9,7 +9,7 @@ module.exports = {
     SET_TOKEN: null,
     REFRESH_REPOS: null,
     TOGGLE_IGNORE_REPO: null,
-    IGNORE_ORG: null
+    TOGGLE_IGNORE_ORG: null
   }),
 
   ActionSources: keyMirror({

@@ -3,8 +3,8 @@ const Repo = require('./Repo.jsx');
 const Alert = require('react-bootstrap/lib/Alert');
 
 function sortByName(a, b) {
-  var aname = a.name.toLowerCase();
-  var bname = b.name.toLowerCase();
+  var aname = (a.name || a.login).toLowerCase();
+  var bname = (b.name || b.login).toLowerCase();
   if(aname < bname) return -1;
   if(aname > bname) return 1;
   return 0;
@@ -21,11 +21,11 @@ let RepoList = React.createClass({
   },
 
   currentReposFilter(repo) {
-    return !this.outdatedReposFilter(repo) && !this.ignoredReposFilter(repo);
+    return !this.outdatedReposFilter(repo) && !this.ignoredReposFilter(repo) && !this.ignoredOrgsFilter(repo.owner);
   },
 
   outdatedReposFilter(repo) {
-    return repo._tooOld && !this.ignoredReposFilter(repo);
+    return repo._tooOld && !this.ignoredReposFilter(repo) && !this.ignoredOrgsFilter(repo.owner);
   },
 
   ignoredReposFilter(repo) {
@@ -33,8 +33,13 @@ let RepoList = React.createClass({
     return (ignoredRepos.indexOf(repo.id) > -1);
   },
 
+  ignoredOrgsFilter(org) {
+    let {ignoredOrgs} = this.props;
+    return (ignoredOrgs.indexOf(org.id) > -1);
+  },
+
   render() {
-    let {repos} = this.props;
+    let {repos, orgs} = this.props;
 
     if (repos.length === 0) {
       return (
@@ -63,7 +68,7 @@ let RepoList = React.createClass({
         <h3 className='subsection'>Ignored repos</h3>
 
         <div className='repo-grid'>
-          {repos.filter(this.ignoredReposFilter).sort(sortByName).map(repo =>
+          {repos.filter(this.ignoredReposFilter).concat(orgs.filter(this.ignoredOrgsFilter)).sort(sortByName).map(repo =>
               <div className='repo-grid-item' key={repo.id}><Repo repo={repo} empty /></div>
           )}
         </div>

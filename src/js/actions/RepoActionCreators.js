@@ -23,10 +23,10 @@ module.exports = {
     });
   },
 
-  ignoreOrg: function(repo) {
+  toggleIgnoreOrg: function(org) {
     AppDispatcher.handleViewAction({
-      type: Constants.ActionTypes.IGNORE_ORG,
-      repo: repo
+      type: Constants.ActionTypes.TOGGLE_IGNORE_ORG,
+      org: org
     });
   }
 

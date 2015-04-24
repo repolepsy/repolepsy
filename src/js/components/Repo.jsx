@@ -1,6 +1,7 @@
 const React = require('react');
 const Panel = require('react-bootstrap/lib/Panel');
 const IgnoredReposStore = require('../stores/IgnoredReposStore');
+const IgnoredOrgsStore = require('../stores/IgnoredOrgsStore');
 const ListGroup = require('react-bootstrap/lib/ListGroup');
 const DropdownButton = require('react-bootstrap/lib/DropdownButton');
 const MenuItem = require('react-bootstrap/lib/MenuItem');
@@ -38,8 +39,7 @@ let Repo = React.createClass({
     return "https://github.com/" + repo.fullName;
   },
 
-  renderIgnoreRepoLabel() {
-    let {repo} = this.props;
+  renderIgnoreRepoLabel(repo) {
     if(IgnoredReposStore.isIgnoredRepo(repo)) {
       return "Unignore " + repo.fullName;
     }
@@ -48,20 +48,40 @@ let Repo = React.createClass({
     }
   },
 
+  renderIgnoreOrgLabel(org) {
+    if(IgnoredOrgsStore.isIgnoredOrg(org)) {
+      return "Unignore " + org.login;
+    }
+    else {
+      return "Ignore "  + org.login;
+    }
+  },
+
   renderMenu() {
     let {repo} = this.props;
+    if(!repo.owner) { //org, not repo!
       return (
         <DropdownButton title='' bsSize='xsmall' pullRight>
-          <MenuItem onClick={this.toggleIgnoreRepo} eventKey='1'>{this.renderIgnoreRepoLabel()}</MenuItem>
-          <MenuItem onClick={this.ignoreOrg} eventKey='2'>Ignore organization</MenuItem>
+          <MenuItem onClick={this.toggleIgnoreOrg} eventKey='1'>{this.renderIgnoreOrgLabel(repo)}</MenuItem>
         </DropdownButton>
       );
+    }
+    else {
+      return (
+        <DropdownButton title='' bsSize='xsmall' pullRight>
+          <MenuItem onClick={this.toggleIgnoreRepo} eventKey='1'>{this.renderIgnoreRepoLabel(repo)}</MenuItem>
+          <MenuItem onClick={this.toggleIgnoreOrg} eventKey='1'>{this.renderIgnoreOrgLabel(repo.owner)}</MenuItem>
+        </DropdownButton>
+      );
+    }
+
+
   },
 
   renderTitle() {
     let {repo} = this.props;
 
-    var title = repo.name;
+    var title = repo.name || repo.login;
     if(repo._loading) {
       title += " (Loading...)";
     }
@@ -76,8 +96,8 @@ let Repo = React.createClass({
     return false;
   },
 
-  ignoreOrg() {
-    ActionCreator.ignoreOrg(this.props.repo);
+  toggleIgnoreOrg() {
+    ActionCreator.toggleIgnoreOrg(this.props.repo.owner ? this.props.repo.owner : this.props.repo);
     return false;
   },
 

@@ -3,6 +3,7 @@ const Constants = require('../constants/AppConstants');
 const BaseStore = require('./BaseStore');
 const assign = require('object-assign');
 const IgnoredReposStore = require('./IgnoredReposStore');
+const IgnoredOrgsStore = require('./IgnoredOrgsStore');
 const Octokat = require('octokat');
 const moment = require('moment');
 const debounce = require('debounce');
@@ -92,6 +93,10 @@ function getAllRepos(res) {
 
 function getAllOrgs(res) {
   res.forEach(function(org) {
+    if(IgnoredOrgsStore.isIgnoredOrg(org)) {
+      return;
+    }
+
     org.repos.fetch({
       per_page: REPOS_PER_PAGE
     }).then(getAllRepos);
