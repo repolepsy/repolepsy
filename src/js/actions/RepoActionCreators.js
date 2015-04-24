@@ -16,10 +16,9 @@ module.exports = {
     });
   },
 
-  ignoreRepo: function(repo) {
-    console.log("ignoreRepo", repo);
+  toggleIgnoreRepo: function(repo) {
     AppDispatcher.handleViewAction({
-      type: Constants.ActionTypes.IGNORE_REPO,
+      type: Constants.ActionTypes.TOGGLE_IGNORE_REPO,
       repo: repo
     });
   },

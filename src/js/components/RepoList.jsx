@@ -2,11 +2,12 @@ const React = require('react');
 const Repo = require('./Repo.jsx');
 const Alert = require('react-bootstrap/lib/Alert');
 
-function currentRepos(repo) {
-  return !(repo._tooOld || repo._ignoredRepo);
-}
-function outdatedRepos(repo) {
-  return repo._tooOld;
+function sortByName(a, b) {
+  var aname = a.name.toLowerCase();
+  var bname = b.name.toLowerCase();
+  if(aname < bname) return -1;
+  if(aname > bname) return 1;
+  return 0;
 }
 
 let RepoList = React.createClass({
@@ -17,6 +18,19 @@ let RepoList = React.createClass({
   },
 
   componentDidMount() {
+  },
+
+  currentReposFilter(repo) {
+    return !this.outdatedReposFilter(repo) && !this.ignoredReposFilter(repo);
+  },
+
+  outdatedReposFilter(repo) {
+    return repo._tooOld && !this.ignoredReposFilter(repo);
+  },
+
+  ignoredReposFilter(repo) {
+    let {ignoredRepos} = this.props;
+    return (ignoredRepos.indexOf(repo.id) > -1);
   },
 
   render() {
@@ -33,7 +47,7 @@ let RepoList = React.createClass({
     return (
       <div>
         <div className='repo-grid'>
-          {repos.filter(currentRepos).map(repo =>
+          {repos.filter(this.currentReposFilter).map(repo =>
               <div className='repo-grid-item' key={repo.id} style={repo._style}><Repo repo={repo} /></div>
           )}
         </div>
@@ -41,8 +55,16 @@ let RepoList = React.createClass({
         <h3 className='subsection'>Outdated repos</h3>
 
         <div className='repo-grid'>
-          {repos.filter(outdatedRepos).map(repo =>
-              <div className='repo-grid-item' key={repo.id} style={repo._style}><Repo repo={repo} /></div>
+          {repos.filter(this.outdatedReposFilter).sort(sortByName).map(repo =>
+              <div className='repo-grid-item' key={repo.id}><Repo repo={repo} empty /></div>
+          )}
+        </div>
+
+        <h3 className='subsection'>Ignored repos</h3>
+
+        <div className='repo-grid'>
+          {repos.filter(this.ignoredReposFilter).sort(sortByName).map(repo =>
+              <div className='repo-grid-item' key={repo.id}><Repo repo={repo} empty /></div>
           )}
         </div>
       </div>

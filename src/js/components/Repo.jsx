@@ -1,5 +1,6 @@
 const React = require('react');
 const Panel = require('react-bootstrap/lib/Panel');
+const IgnoredReposStore = require('../stores/IgnoredReposStore');
 const ListGroup = require('react-bootstrap/lib/ListGroup');
 const DropdownButton = require('react-bootstrap/lib/DropdownButton');
 const MenuItem = require('react-bootstrap/lib/MenuItem');
@@ -37,6 +38,26 @@ let Repo = React.createClass({
     return "https://github.com/" + repo.fullName;
   },
 
+  renderIgnoreRepoLabel() {
+    let {repo} = this.props;
+    if(IgnoredReposStore.isIgnoredRepo(repo)) {
+      return "Unignore " + repo.fullName;
+    }
+    else {
+      return "Ignore "  + repo.fullName;
+    }
+  },
+
+  renderMenu() {
+    let {repo} = this.props;
+      return (
+        <DropdownButton title='' bsSize='xsmall' pullRight>
+          <MenuItem onClick={this.toggleIgnoreRepo} eventKey='1'>{this.renderIgnoreRepoLabel()}</MenuItem>
+          <MenuItem onClick={this.ignoreOrg} eventKey='2'>Ignore organization</MenuItem>
+        </DropdownButton>
+      );
+  },
+
   renderTitle() {
     let {repo} = this.props;
 
@@ -45,20 +66,13 @@ let Repo = React.createClass({
       title += " (Loading...)";
     }
 
-    /*return (<h3><a href={this.url()}>{title}</a>
-
-      <DropdownButton title='' bsSize='xsmall' pullRight>
-        <MenuItem onClick={this.ignoreRepo} eventKey='1'>Ignore {repo.fullName}</MenuItem>
-        <MenuItem onClick={this.ignoreOrg} eventKey='2'>Ignore organization</MenuItem>
-      </DropdownButton>
-
-    </h3>)*/
-
-    return <h3><a href={this.url()}>{title}</a></h3>;
+    return (<h3><a href={this.url()}>{title}</a>
+      {this.renderMenu()}
+    </h3>);
   },
 
-  ignoreRepo() {
-    ActionCreator.ignoreRepo(this.props.repo);
+  toggleIgnoreRepo() {
+    ActionCreator.toggleIgnoreRepo(this.props.repo);
     return false;
   },
 
@@ -68,10 +82,10 @@ let Repo = React.createClass({
   },
 
   render() {
-    let {repo} = this.props;
+    let {repo, empty} = this.props;
     let title = this.renderTitle();
 
-    if(repo._tooOld) {
+    if(empty) {
       return (
         <Panel header={title}>
           <ListGroup fill>

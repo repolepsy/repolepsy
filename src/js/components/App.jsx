@@ -1,5 +1,6 @@
 const React = require('react');
 const RepoStore = require('../stores/RepoStore');
+const IgnoredReposStore = require('../stores/IgnoredReposStore');
 const ActionCreator = require('../actions/RepoActionCreators');
 const Button = require('react-bootstrap/lib/Button');
 const Jumbotron = require('react-bootstrap/lib/Jumbotron');
@@ -12,23 +13,27 @@ let App = React.createClass({
   getInitialState() {
     var data = {
       refreshText: "5 minutes",
-      RepoStore: RepoStore.getAll()
+      RepoStore: RepoStore.getAll(),
+      IgnoredReposStore: IgnoredReposStore.getAll()
     };
     return data;
   },
 
   _onChange() {
     this.setState({
-      RepoStore: RepoStore.getAll()
+      RepoStore: RepoStore.getAll(),
+      IgnoredReposStore: IgnoredReposStore.getAll()
     });
   },
 
   componentDidMount() {
     RepoStore.addChangeListener(this._onChange);
+    IgnoredReposStore.addChangeListener(this._onChange);
   },
 
   componentWillUnmount() {
     RepoStore.removeChangeListener(this._onChange);
+    IgnoredReposStore.removeChangeListener(this._onChange);
   },
 
   handleRefreshClick(e) {
@@ -50,7 +55,7 @@ let App = React.createClass({
   },
 
   render() {
-    let {RepoStore} = this.state;
+    let {RepoStore,IgnoredReposStore} = this.state;
 
     if(RepoStore.err) {
       if(RepoStore.err.message = "Bad credentials") {
@@ -73,7 +78,7 @@ let App = React.createClass({
           </p>
         </Jumbotron>
 
-        <RepoList repos={RepoStore.repos}/>
+        <RepoList repos={RepoStore.repos} ignoredRepos={IgnoredReposStore.ignoredRepos}/>
       </div>
     );
   }

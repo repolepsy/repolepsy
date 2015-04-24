@@ -2,11 +2,10 @@ const AppDispatcher = require('../dispatchers/AppDispatcher');
 const Constants = require('../constants/AppConstants');
 const BaseStore = require('./BaseStore');
 const assign = require('object-assign');
+const IgnoredReposStore = require('./IgnoredReposStore');
 const Octokat = require('octokat');
 const moment = require('moment');
 const debounce = require('debounce');
-
-
 
 Object.values = obj => Object.keys(obj).map(key => obj[key]);
 
@@ -22,7 +21,6 @@ let _orgs = [];
 let _err = null;
 let _token = window.localStorage.getItem("gh_token") || "";
 let _login = window.localStorage.getItem("gh_login") || "";
-let _ignoredRepos = window.localStorage.getItem("ignoredRepos") || [];
 let _lastToken = null;
 let refreshTimeout;
 let _now;
@@ -42,6 +40,11 @@ const REFRESH_INTERVAL_MS = 5 * 60 * 1000; //5 minutes
 function assureString(str) {
   if(typeof str !== 'string') {
     throw new Error("Expected a string");
+  }
+}
+function assureNumber(num) {
+  if(typeof num !== 'number') {
+    throw new Error("Expected a number");
   }
 }
 
@@ -136,9 +139,14 @@ function updateAllRepoEvents() {
 function updateRepoEvents(repo) {
   assureString(repo.updatedAt);
 
+  if(IgnoredReposStore.isIgnoredRepo(repo)) {
+    return;
+  }
+
   if(repo._loading) {
     return;
   }
+
   if(repo.lastUpdatedAt) {
     assureString(repo.lastUpdatedAt);
     if(repo.lastUpdatedAt >= repo.updatedAt) {
@@ -269,10 +277,11 @@ let RepoStore = assign({}, BaseStore, {
   // register store with dispatcher, allowing actions to flow through
   dispatcherIndex: AppDispatcher.register(function(payload) {
     let action = payload.action;
+    let text = action.text;
 
     switch (action.type) {
       case Constants.ActionTypes.SET_TOKEN:
-        let text = action.text.trim();
+        text = text.trim();
         if (text !== '') {
           _token = text;
           if(window.localStorage.getItem("gh_token") !== _token) {

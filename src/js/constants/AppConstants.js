@@ -8,7 +8,7 @@ module.exports = {
     INCOMPLETE_TASK: null,
     SET_TOKEN: null,
     REFRESH_REPOS: null,
-    IGNORE_REPO: null,
+    TOGGLE_IGNORE_REPO: null,
     IGNORE_ORG: null
   }),
 
