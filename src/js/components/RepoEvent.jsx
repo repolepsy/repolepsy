@@ -69,19 +69,25 @@ let RepoEvent = React.createClass({
     return "https://github.com/" + repo.fullName;
   },
 
+  getAvatar(actor) {
+    let url = "https://avatars2.githubusercontent.com/u/" + actor.id;
+    return <a title={actor.login} href={this.getActorUrl()}><img className="avatar" src={url}></img></a>;
+  },
+
   escapeChars(txt) {
     return txt.replace(/\:\//, ":\u202F/");
   },
 
   render() {
     let {evnt} = this.props;
+    let avatar = this.getAvatar(evnt.actor);
 
     switch(evnt.type) {
       case "PushEvent":
         if(evnt.payload.commits && evnt.payload.commits.length) {
           return (
             <ListGroupItem>
-              <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
+              <div className="ellipsis">{avatar}
               &nbsp;pushed to <strong>{this.getBranchName(evnt.payload.ref)}</strong>:&nbsp;
               <a href={this.getCommitUrl()}>{evnt.payload.commits[0].message}</a></div>
             </ListGroupItem>
@@ -90,7 +96,7 @@ let RepoEvent = React.createClass({
         else {
           return (
             <ListGroupItem>
-              <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
+              <div className="ellipsis">{avatar}
               &nbsp;pushed something</div>
             </ListGroupItem>
           );
@@ -100,7 +106,7 @@ let RepoEvent = React.createClass({
       case "IssueCommentEvent":
           return (
             <ListGroupItem>
-              <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
+              <div className="ellipsis">{avatar}
               &nbsp;{evnt.payload.action} comment&nbsp;
               <a href={this.getCommentUrl()}>{this.emojify(this.escapeChars(evnt.payload.comment.body), {"emojiType": "emojione"})}</a></div>
             </ListGroupItem>
@@ -110,7 +116,7 @@ let RepoEvent = React.createClass({
       case "IssuesEvent":
         return (
           <ListGroupItem>
-            <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
+            <div className="ellipsis">{avatar}
             &nbsp;{evnt.payload.action} issue&nbsp;
             <a href={this.getIssueUrl()}>{evnt.payload.issue.title}</a></div>
           </ListGroupItem>
@@ -120,7 +126,7 @@ let RepoEvent = React.createClass({
       case "PullRequestEvent":
         return (
           <ListGroupItem>
-            <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
+            <div className="ellipsis">{avatar}
             &nbsp;{evnt.payload.action} PR&nbsp;
             <a href={this.getPullRequestUrl()}>{evnt.payload.pullRequest.title}</a></div>
           </ListGroupItem>
@@ -130,7 +136,7 @@ let RepoEvent = React.createClass({
       case "CreateEvent":
         return (
           <ListGroupItem>
-            <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
+            <div className="ellipsis">{avatar}
             &nbsp;created {evnt.payload.refType} <strong>{evnt.payload.ref}</strong></div>
           </ListGroupItem>
         );
@@ -139,7 +145,7 @@ let RepoEvent = React.createClass({
       case "DeleteEvent":
         return (
           <ListGroupItem>
-            <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
+            <div className="ellipsis">{avatar}
             &nbsp;deleted {evnt.payload.refType} <strong>{evnt.payload.ref}</strong></div>
           </ListGroupItem>
         );
@@ -148,7 +154,7 @@ let RepoEvent = React.createClass({
       case "ReleaseEvent":
         return (
           <ListGroupItem>
-            <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
+            <div className="ellipsis">{avatar}
             &nbsp;{evnt.payload.action} release {evnt.payload.release.tagName}</div>
           </ListGroupItem>
         );
@@ -157,7 +163,7 @@ let RepoEvent = React.createClass({
       case "GollumEvent":
         return (
           <ListGroupItem>
-            <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
+            <div className="ellipsis">{avatar}
             &nbsp;{evnt.payload.pages[0].action} wiki&nbsp;
               <a href={this.getWikiUrl()}>{evnt.payload.pages[0].title}</a></div>
           </ListGroupItem>
@@ -167,7 +173,7 @@ let RepoEvent = React.createClass({
       default:
         return (
           <ListGroupItem>
-            <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
+            <div className="ellipsis">{avatar}
             &nbsp;made {evnt.type}</div>
           </ListGroupItem>
         );
