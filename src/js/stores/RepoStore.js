@@ -21,6 +21,7 @@ Object.values(_repos).forEach(function(repo) {
 let _orgs = [];
 let _err = null;
 let _token = window.localStorage.getItem("gh_token") || "";
+let _login = "warpech";
 let _ignoredRepos = window.localStorage.getItem("ignoredRepos") || [];
 let _lastToken = null;
 let refreshTimeout;
@@ -33,6 +34,7 @@ var octo;
 const REPOS_PER_PAGE = 100; //can be safely changed to 100
 const ORGS_PER_PAGE = 100; //can be safely changed to 100
 const EVENTS_PER_PAGE = 20;
+const USER_EVENTS_PER_PAGE = 300;
 const MAX_EVENTS = 5; //max events to display
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; //5 minutes
 
@@ -52,6 +54,7 @@ function getAllRepos(res) {
 
   res.forEach(function(repo) {
     var found = _repos[repo.fullName];
+    assureString(repo.name);
 
     if(repo.name == "Barcodes") {
      // debugger;
@@ -92,6 +95,30 @@ function getAllOrgs(res) {
   } else {
     updateAllRepoEvents();
   }
+}
+
+function getAllEvents(res) {
+  res.forEach(function(evnt) {
+    evnt.createdAt = evnt.createdAt.toISOString();
+
+    var repo = _repos[evnt.repo.name];
+
+    if (!repo) {
+      return;
+    }
+
+    assureString(repo.name);
+    if(repo.updatedAt == undefined) {
+      repo.updatedAt = evnt.createdAt; //hack?
+    }
+    assureString(repo.updatedAt);
+
+    if(evnt.createdAt > repo.updatedAt) {
+      repo.updatedAt = evnt.createdAt;
+    }
+
+    updateRepoEvents(repo);
+  });
 }
 
 
@@ -182,10 +209,15 @@ function loadData() {
       RepoStore.emitChange();
     });
 
-  octo.user.orgs.fetch({
-    per_page: ORGS_PER_PAGE
+  octo.users(_login).receivedEvents.fetch({
+    per_page: USER_EVENTS_PER_PAGE
   })
-    .then(getAllOrgs);
+    .then(getAllEvents);
+
+  octo.users(_login).events.fetch({
+    per_page: USER_EVENTS_PER_PAGE
+  })
+    .then(getAllEvents);
 
   clearTimeout(refreshTimeout);
   refreshTimeout = setTimeout(loadData, REFRESH_INTERVAL_MS);
