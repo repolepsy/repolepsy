@@ -21,7 +21,7 @@ Object.values(_repos).forEach(function(repo) {
 let _orgs = [];
 let _err = null;
 let _token = window.localStorage.getItem("gh_token") || "";
-let _login = "warpech";
+let _login = window.localStorage.getItem("gh_login") || "";
 let _ignoredRepos = window.localStorage.getItem("ignoredRepos") || [];
 let _lastToken = null;
 let refreshTimeout;
@@ -209,6 +209,15 @@ function loadData() {
     _lastToken = _token;
   }
 
+
+  if(!_login) {
+    octo.user.fetch().then(function(res){
+      _login = res.login;
+      window.localStorage.setItem("gh_login", _login)
+      loadData()
+    });
+  }
+
   octo.user.repos.fetch({
     per_page: REPOS_PER_PAGE
   })
@@ -221,16 +230,18 @@ function loadData() {
     per_page: ORGS_PER_PAGE
   })
     .then(getAllOrgs);
-  
-  octo.users(_login).receivedEvents.fetch({
-    per_page: USER_EVENTS_PER_PAGE
-  })
-    .then(getAllEvents);
 
-  octo.users(_login).events.fetch({
-    per_page: USER_EVENTS_PER_PAGE
-  })
-    .then(getAllEvents);
+  if(_login) {
+    octo.users(_login).receivedEvents.fetch({
+      per_page: USER_EVENTS_PER_PAGE
+    })
+      .then(getAllEvents);
+
+    octo.users(_login).events.fetch({
+      per_page: USER_EVENTS_PER_PAGE
+    })
+      .then(getAllEvents);
+  }
 
   clearTimeout(refreshTimeout);
   refreshTimeout = setTimeout(loadData, REFRESH_INTERVAL_MS);
