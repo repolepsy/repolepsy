@@ -10,6 +10,7 @@ let Repo = React.createClass({
   getInitialState() {
     return {
       lastUpdatedAt: "",
+      lastLoading: undefined,
       repo: {
         name: '',
         _events: []
@@ -18,12 +19,13 @@ let Repo = React.createClass({
   },
 
   shouldComponentUpdate: function(nextProps, nextState) {
-    return (this.state.lastUpdatedAt != nextProps.repo.updatedAt);
+    return (this.state.lastUpdatedAt != nextProps.repo.updatedAt || this.state.lastLoading != nextProps.repo._loading);
   },
 
   componentDidUpdate() {
     this.setState({
-      lastUpdatedAt: this.props.repo.updatedAt
+      lastUpdatedAt: this.props.repo.updatedAt,
+      lastLoading: this.props.repo._loading
     });
   },
 
