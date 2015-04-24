@@ -69,6 +69,10 @@ let RepoEvent = React.createClass({
     return "https://github.com/" + repo.fullName;
   },
 
+  escapeChars(txt) {
+    return txt.replace(/\:\//, ":\u202F/");
+  },
+
   render() {
     let {evnt} = this.props;
 
@@ -98,7 +102,7 @@ let RepoEvent = React.createClass({
             <ListGroupItem>
               <div className="ellipsis"><a href={this.getActorUrl()}>{evnt.actor.login}</a>
               &nbsp;{evnt.payload.action} comment&nbsp;
-              <a href={this.getCommentUrl()}>{this.emojify(evnt.payload.comment.body, {"emojiType": "emojione"})}</a></div>
+              <a href={this.getCommentUrl()}>{this.emojify(this.escapeChars(evnt.payload.comment.body), {"emojiType": "emojione"})}</a></div>
             </ListGroupItem>
           );
         break;
