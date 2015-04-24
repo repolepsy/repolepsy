@@ -66,10 +66,15 @@ function getAllRepos(res) {
       _repos[found.fullName] = found;
     }
 
-    found.updatedAt = repo.updatedAt.toISOString();
-    found.pushedAt = repo.pushedAt.toISOString();
-    if(found.pushedAt > found.updatedAt) {
-      found.updatedAt = found.pushedAt;
+    repo.updatedAt = repo.updatedAt.toISOString();
+    repo.pushedAt = repo.pushedAt.toISOString();
+
+    if(repo.pushedAt > repo.updatedAt) {
+      repo.updatedAt = repo.pushedAt;
+    }
+
+    if(repo.updatedAt > found.updatedAt) {
+      found.updatedAt = repo.updatedAt;
     }
 
     updateRepoEvents(found);
@@ -131,6 +136,9 @@ function updateAllRepoEvents() {
 function updateRepoEvents(repo) {
   assureString(repo.updatedAt);
 
+  if(repo._loading) {
+    return;
+  }
   if(repo.lastUpdatedAt) {
     assureString(repo.lastUpdatedAt);
     if(repo.lastUpdatedAt >= repo.updatedAt) {
@@ -209,6 +217,11 @@ function loadData() {
       RepoStore.emitChange();
     });
 
+  octo.user.orgs.fetch({
+    per_page: ORGS_PER_PAGE
+  })
+    .then(getAllOrgs);
+  
   octo.users(_login).receivedEvents.fetch({
     per_page: USER_EVENTS_PER_PAGE
   })

@@ -9,6 +9,7 @@ const ActionCreator = require('../actions/RepoActionCreators');
 let Repo = React.createClass({
   getInitialState() {
     return {
+      lastUpdatedAt: "",
       repo: {
         name: '',
         _events: []
@@ -17,14 +18,13 @@ let Repo = React.createClass({
   },
 
   shouldComponentUpdate: function(nextProps, nextState) {
-    if(nextProps.repo && nextProps.repo._events && nextProps.repo._events[0] && nextProps.repo._events[0].createdAt) {
-      if(this.props.repo && this.props.repo._events && this.props.repo._events[0] && this.props.repo._events[0].createdAt) {
-        if(nextProps.repo._events[0].createdAt == this.props.repo._events[0].createdAt) {
-          return false;
-        }
-      }
-    }
-    return true;
+    return (this.state.lastUpdatedAt != nextProps.repo.updatedAt);
+  },
+
+  componentDidUpdate() {
+    this.setState({
+      lastUpdatedAt: this.props.repo.updatedAt
+    });
   },
 
   componentDidMount() {
