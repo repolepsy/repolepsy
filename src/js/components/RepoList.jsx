@@ -65,7 +65,7 @@ let RepoList = React.createClass({
           )}
         </div>
 
-        <h3 className='subsection'>Ignored repos</h3>
+        <h3 className='subsection'>Ignored repos &amp; orgs</h3>
 
         <div className='repo-grid'>
           {repos.filter(this.ignoredReposFilter).concat(orgs.filter(this.ignoredOrgsFilter)).sort(sortByName).map(repo =>
